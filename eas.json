@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">=2.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview"
+    },
+    "production": {
+      "channel": "production"
+    }
+  },
+  "submit": {
+    "preview": {
+      "ios": {
+        "ascAppId": "1643969791"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascAppId": "1643969791"
+      }
+    }
+  }
+}

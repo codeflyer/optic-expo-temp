@@ -1,0 +1,29 @@
+name: expo-eas-build
+
+on:
+  workflow_call:
+    secrets:
+      expo-token:
+        description: 'expo token'
+        required: true
+    inputs:
+      platform:
+        type: string
+        default: android
+
+jobs:
+  eas-submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+      - uses: expo/expo-github-action@v8
+        with:
+          expo-cache: true
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.expo-token }}
+      - run: yarn
+      - run: eas submit --platform ${{ inputs.platform }} --non-interactive --latest

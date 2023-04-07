@@ -1,0 +1,61 @@
+name: ci
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+      - run: yarn
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: npm install -g expo-cli
+      - run: yarn doctor
+      - run: yarn test
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
+
+  eas-update:
+    needs: build
+    if: github.actor != 'dependabot[bot]'
+    uses: ./.github/workflows/expo-eas-update.yml
+    with:
+      channel: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'preview' }}
+      message: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+    secrets:
+      expo-token: ${{ secrets.EXPO_TOKEN }}
+
+  build-ios:
+    needs: build
+    if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.title, '[OPTIC-RELEASE-AUTOMATION]')
+    uses: ./.github/workflows/expo-eas-build.yml
+    with:
+      profile: production
+      platform: ios
+    secrets:
+      expo-token: ${{ secrets.EXPO_TOKEN }}
+
+  build-android:
+    needs: build
+    if: github.event_name == 'pull_request' && startsWith(github.event.pull_request.title, '[OPTIC-RELEASE-AUTOMATION]')
+    uses: ./.github/workflows/expo-eas-build.yml
+    with:
+      profile: production
+      platform: android
+    secrets:
+      expo-token: ${{ secrets.EXPO_TOKEN }}
